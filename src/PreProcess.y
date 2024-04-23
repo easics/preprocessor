@@ -82,11 +82,11 @@ line_list       :
                 | line_list line
                 ;
 
-line            : TOKEN_BLOB_LINE TOKEN_EOL
+line            : TOKEN_BLOB_LINE
                 {
                   if (!context->skip())
                     {
-                      *context->result << *$1;
+                      *context->result << PreProcessParseContext::replaceDefines(*$1);
                     }
                   *context->result << '\n';
                   delete $1;
@@ -220,6 +220,6 @@ void PreProcesserror(YYLTYPE * loc, PreProcessParseContext * context,
                      const char * message)
 {
   std::ostringstream s;
-  s << loc->first_line << ":" << message << "\n";
+  s << context->getCurrentFilename() << ":" << loc->first_line << ":" << message << "\n";
   throw std::runtime_error(s.str());
 }

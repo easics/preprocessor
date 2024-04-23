@@ -14,12 +14,14 @@
 
 
 #include "PreProcessParseContext.h"
+#include "PPDeferredCall.h"
 #include <stdexcept>
 #include <iostream>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <cstring>
+#include <cstdio>
 #include <limits.h>
 
 extern int PreProcessdebug;
@@ -63,12 +65,21 @@ void PreProcessParseContext::parseFile(const std::string & filename,
   PreProcessdebug = 0;
   filename_ = filename;
   FILE * f = fopen(filenameWithoutPath.c_str(), "r");
+  auto defer1 = defer([&](){
+        // Change path back to path before this parse
+        chdir(pathBeforeCurrentParse.c_str());
+              });
   if (!f)
     {
       throw std::runtime_error(makeErrorLocation() +
                                "Unable to open " + filename);
     }
+
   initScanner();
+  auto defer2 = defer([&](){
+                      fclose(f);
+                      destroyScanner();
+                      });
   includedFiles_.clear();
   setFile(f);
   std::string oldCurrentName = currentFilename_;
@@ -84,22 +95,27 @@ void PreProcessParseContext::parseFile(const std::string & filename,
     {
       if (top && !ifNesting_.empty())
         {
-          fclose(f);
           throw std::runtime_error(makeErrorLocation() +
                                    "missing #endif");
         }
     }
   currentFilename_ = oldCurrentName;
-  fclose(f);
-  destroyScanner();
 
-  // Change path back to path before this parse
   chdir(pathBeforeCurrentParse.c_str());
 }
 
 void PreProcessParseContext::addDefine(const std::string & name)
 {
-  defines_[name] = "";
+  auto equalPos = name.find('=');
+  if (equalPos == std::string::npos)
+    {
+      defines_[name] = "";
+    }
+  else
+    {
+      auto defineName = name.substr(0, equalPos);
+      defines_[defineName] = name.substr(equalPos+1);
+    }
 }
 
 bool PreProcessParseContext::isDefined(const std::string & name)
@@ -185,6 +201,40 @@ void PreProcessParseContext::endif() // static
   if (ifNesting_.empty())
     throw std::runtime_error(makeErrorLocation() + "endif without matching if");
   ifNesting_.pop_back();
+}
+
+std::string PreProcessParseContext::replaceDefines(const std::string & line) // static
+{
+  char alpha_numeric[] = "0123456789abcdefghijklmnopqrstuvwxyz"
+                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+  auto isKeyword = [&](char c){ return strchr(alpha_numeric, c) != 0; };
+  std::string replacedLine = line;
+  for (auto define : defines_)
+    {
+      auto pos = replacedLine.find(define.first);
+      auto defineSize = define.first.size();
+      while (pos != std::string::npos)
+        {
+          bool beginOfWord = pos == 0 || !isKeyword(replacedLine[pos-1]);
+          bool endOfWord = (pos + defineSize) == replacedLine.size() ||
+            !isKeyword(replacedLine[pos + defineSize]);
+          if (beginOfWord && endOfWord)
+            {
+              replacedLine = replacedLine.substr(0, pos) + define.second +
+                             replacedLine.substr(pos + defineSize);
+            }
+          else
+            ++pos;
+
+          pos = replacedLine.find(define.first, pos);
+        }
+    }
+  return replacedLine;
+}
+
+std::string PreProcessParseContext::getCurrentFilename() // static
+{
+  return currentFilename_;
 }
 
 static std::string itoa(unsigned int value)

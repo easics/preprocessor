@@ -65,6 +65,8 @@ public:
   static void addElif(bool conditionMatch);
   static void addElse();
   static void endif();
+  static std::string replaceDefines(const std::string & line);
+  static std::string getCurrentFilename();
 
   // configuration
   static bool addLineInfo;

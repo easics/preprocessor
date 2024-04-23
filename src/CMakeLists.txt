@@ -27,14 +27,12 @@ find_package(FLEX)
 BISON_TARGET(PreProcessParser
              ${CMAKE_CURRENT_SOURCE_DIR}/PreProcess.y
              ${CMAKE_CURRENT_BINARY_DIR}/PreProcess.tab.cpp
-             COMPILE_FLAGS "-d -p PreProcess")
+             COMPILE_FLAGS "-HPreProcess.tab.h -p PreProcess")
 FLEX_TARGET(PreProcessScanner
             ${CMAKE_CURRENT_SOURCE_DIR}/PreProcess.l
             ${CMAKE_CURRENT_BINARY_DIR}/PreProcess.lex.cpp
             COMPILE_FLAGS "-P PreProcess")
 ADD_FLEX_BISON_DEPENDENCY(PreProcessScanner PreProcessParser)
-
-target_link_libraries(PreProcess ${FLEX_LIBRARIES})
 
 ## File list
 target_sources(PreProcess

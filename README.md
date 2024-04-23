@@ -18,7 +18,7 @@ A simple preprocessor
 
 ## Compilation
 
-Compilation is done with [CMAKE](https://cmake.org/)
+Compilation is done with [CMake](https://cmake.org/)
 
 Generate the project build system:
 
@@ -53,3 +53,14 @@ For Ubuntu and Debian the following packages are required:
 * For Ninja builds: build-essential
 * flex
 * bison
+
+## License
+
+preprocessor is distributed under the
+[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html)
+
+## Contact info
+
+Created by [easics](https://www.easics.com/)
+
+Tool specific questions: tools@easics.be

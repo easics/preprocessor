@@ -12,8 +12,8 @@
 # You should have received a copy of the GNU General Public License along with
 # preprocessor. If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.16.1)
-project(PreProcess LANGUAGES CXX)
-
-## Sources
-add_subdirectory(src)
+PreProcess.lex.C
+PreProcess.lex.cpp
+PreProcess.tab.C
+PreProcess.tab.cpp
+PreProcess.tab.h
