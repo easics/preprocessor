@@ -27,7 +27,8 @@ find_package(FLEX)
 BISON_TARGET(PreProcessParser
              ${CMAKE_CURRENT_SOURCE_DIR}/PreProcess.y
              ${CMAKE_CURRENT_BINARY_DIR}/PreProcess.tab.cpp
-             COMPILE_FLAGS "-HPreProcess.tab.h -p PreProcess")
+             COMPILE_FLAGS "-p PreProcess"
+             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/PreProcess.tab.h)
 FLEX_TARGET(PreProcessScanner
             ${CMAKE_CURRENT_SOURCE_DIR}/PreProcess.l
             ${CMAKE_CURRENT_BINARY_DIR}/PreProcess.lex.cpp
